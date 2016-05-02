@@ -20,16 +20,29 @@
   });
   function saveNews() {
     if($.trim($("#title").val()) == '') {
-      $("#title").next("i").text('标题不能为空');
+      layer.msg('标题不能为空！');
       return;
     }
-    if($.trim($("#title").val()) == '') {
-      $("#title").next("i").text('标题不能为空');
+    var content = editor.html();
+    $("#content").val(content);
+    if($.trim(content) == '') {
+      layer.msg('内容不能为空！')
       return;
     }
+    //保存
+    //询问框
+    layer.confirm('确定要保存数据吗？', {
+      btn: ['确定','取消'] //按钮
+    }, function(){
+      trimForm('news');
+      layer.closeAll();
+      postDataByFormName('news','workspace');
+    }, function(){
+    });
   }
 </script>
 <form action="${basePath}/news/add.do" method="post" id="news" name="news">
+  <input type="hidden" name="id" value="${news.id}" />
   <div class="place">
     <span>位置：</span>
     <ul class="placeul">
