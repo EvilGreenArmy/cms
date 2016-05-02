@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cms.dao.admin.MessageMapper" >
+    <resultMap type="com.cms.entities.admin.MessageInfo" id="messageMap">
+        <!-- 主键必须用id标签映射 -->
+        <id column="MSG_ID" property="id"  jdbcType="NUMERIC"/>
+        <!-- column为数据库字段名,property为实体类属性名 -->
+        <result column="MSG_TITLE" property="title" jdbcType="VARCHAR"/>
+        <result column="MSG_CONTENT" property="content" jdbcType="VARCHAR"/>
+        <result column="STATUS" property="status"  jdbcType="VARCHAR"/>
+        <result column="SEND_DATE" property="sendDate"  jdbcType="TIMESTAMP"/>
+        <association property="fromUser" column="FROM_USER_ID" javaType="com.cms.entities.admin.UserInfo">
+            <id column="ACCT_ID" property="id" jdbcType="NUMERIC"/>
+            <result column="USER_NAME" property="userName" jdbcType="VARCHAR"/>
+        </association>
+    </resultMap>
+
+    <select id="messageQueryPage" parameterType="java.util.Map" resultMap="messageMap">
+        select t.*, u.ACCT_ID, u.USER_NAME
+        from T_MESSAGE t left join B_ACCOUNT u on t.FROM_USER_ID = u.ACCT_ID where 1=1
+        <if test="toUserId!=null and toUserId !=''">
+            AND (t.TO_USER_ID=#{toUserId} OR t.TO_USER_ID IS NULL )
+        </if>
+        <if test="title!=null and title !=''">
+            AND t.MSG_TITLE LIKE '%'||#{title}||'%'
+        </if>
+        <if test="status!=null and status !=''">
+            AND t.status = #{status}
+        </if>
+        <if test="content!=null and content !=''">
+            AND t.MSG_CONTENT LIKE '%'||#{content}||'%'
+        </if>
+        ORDER by t.MSG_ID DESC
+    </select>
+
+    <resultMap type="com.cms.entities.admin.UserMessageInfo" id="messageFrontMap">
+        <!-- 主键必须用id标签映射 -->
+        <id column="USER_MSG_ID" property="id"  jdbcType="NUMERIC"/>
+        <result column="UM_STATUS" property="status"  jdbcType="VARCHAR"/>
+        <result column="READ_DATE" property="readDate"  jdbcType="TIMESTAMP"/>
+        <association property="message" column="MSG_ID" resultMap="messageMap">
+        </association>
+    </resultMap>
+
+    <select id="messageFrontQueryPage" parameterType="java.util.Map" resultMap="messageFrontMap">
+        select um.USER_MSG_ID ,um.status as UM_STATUS, um.read_date,
+        m.MSG_ID,m.MSG_TITLE, m.MSG_CONTENT, m.STATUS, m.SEND_DATE,
+        u.ACCT_ID, u.USER_NAME
+        from t_user_message um
+        left join t_message m on um.msg_id=m.msg_id
+        left join b_account u on m.FROM_USER_ID=u.acct_id
+        where 1=1 AND m.STATUS='A'
+        <if test="toUserId!=null and toUserId !=''">
+            AND um.TO_USER_ID=#{toUserId}
+        </if>
+        <if test="title!=null and title !=''">
+            AND m.MSG_TITLE LIKE '%'||#{title}||'%'
+        </if>
+        <if test="status!=null and status !=''">
+            AND um.status = #{status}
+        </if>
+        <if test="content!=null and content !=''">
+            AND m.MSG_CONTENT LIKE '%'||#{content}||'%'
+        </if>
+        ORDER by um.USER_MSG_ID DESC
+    </select>
+
+
+    <insert id="insertMessage" parameterType="com.cms.entities.admin.MessageInfo" >
+        <selectKey keyProperty="id" resultType="int" order="BEFORE">
+            select SEQ_AMS.Nextval from dual
+        </selectKey>
+        insert into T_MESSAGE (MSG_ID, MSG_TITLE,MSG_CONTENT, STATUS, SEND_DATE, FROM_USER_ID, TO_USER_ID)
+        values (#{id}, #{title},#{content}, #{status},#{sendDate}, #{fromUser.id,jdbcType=NUMERIC}, #{toUser.id,jdbcType=NUMERIC})
+    </insert>
+
+    <insert id="insertUserMessage"  parameterType="java.util.Map">
+        <selectKey keyProperty="id" resultType="int" order="BEFORE">
+            select SEQ_AMS.Nextval from dual
+        </selectKey>
+        insert into T_USER_MESSAGE (USER_MSG_ID, STATUS,MSG_ID, TO_USER_ID)
+        values (#{id}, 'N', #{messageId}, #{toUserId})
+    </insert>
+
+    <select id="getMessageById" parameterType="int" resultMap="messageMap">
+        select t.*, u.ACCT_ID, u.USER_NAME
+        FROM T_MESSAGE t LEFT JOIN B_ACCOUNT u on t.FROM_USER_ID = u.ACCT_ID
+        where t.MSG_ID = #{id}
+    </select>
+
+    <select id="getAllUserIds" parameterType="int" resultType="java.lang.Integer">
+        select ACCT_ID FROM B_ACCOUNT
+    </select>
+
+    <select id="queryUnreadMessage" parameterType="int" resultType="java.lang.Integer">
+        select count(*)
+        FROM T_MESSAGE t LEFT JOIN t_user_message u on t.MSG_ID = u.MSG_ID
+        where t.status='A' AND u.status='N' AND u.TO_USER_ID=#{id}
+    </select>
+
+    <update id="deleteMessages">
+        update T_MESSAGE set status='D' where MSG_ID in
+        <foreach collection="array" item="id" open="(" separator="," close=")">#{id}</foreach>
+    </update>
+    <update id="updateMessageStatus" parameterType="java.util.Map">
+        update T_MESSAGE set status=#{status} where MSG_ID=#{id}
+    </update>
+    <update id="updateStatus" parameterType="java.util.Map">
+        update T_USER_MESSAGE set status=#{status} where USER_MSG_ID=#{id}
+    </update>
+    <delete id="deletes">
+        delete from T_MESSAGE where MSG_ID in
+        <foreach collection="array" item="id" open="(" separator="," close=")">#{id}</foreach>
+    </delete>
+</mapper>

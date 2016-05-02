@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cms.dao.admin.ProductMapper" >
+    <resultMap type="com.cms.entities.admin.ProductInfo" id="productMap">
+        <!-- 主键必须用id标签映射 -->
+        <id column="PRD_ID" property="id" jdbcType="NUMERIC"/>
+        <!-- column为数据库字段名,property为实体类属性名 -->
+        <result column="PRD_NAME" property="name" jdbcType="VARCHAR" />
+        <result column="PRD_ORGANIZATION" property="organization" jdbcType="VARCHAR"/>
+        <result column="START_DATE" property="startDate" jdbcType="DATE" />
+        <result column="END_DATE" property="endDate"  jdbcType="DATE"/>
+        <result column="ADDR" property="addr" jdbcType="VARCHAR" />
+        <result column="LINKMAN" property="linkman" jdbcType="VARCHAR" />
+        <result column="AREA" property="area" jdbcType="VARCHAR"/>
+        <result column="CONTENT" property="content" jdbcType="VARCHAR"/>
+        <result column="TELEPHONE" property="telephone" jdbcType="VARCHAR"/>
+        <result column="PRICE_UNIT" property="priceUnit" jdbcType="VARCHAR"/>
+        <result column="ZIP_CODE" property="zipCode" jdbcType="VARCHAR"/>
+        <result column="TYPE" property="type" jdbcType="VARCHAR"/>
+        <result column="STATUS" property="status" jdbcType="VARCHAR"/>
+        <result column="ADD_DATE" property="addDate" jdbcType="TIMESTAMP"/>
+        <result column="EDIT_DATE" property="editDate" jdbcType="TIMESTAMP"/>
+
+        <result column="PRD_CN_NAME" property="chineseName" jdbcType="VARCHAR"/>
+        <result column="TASK_SOURCE" property="taskSource" jdbcType="VARCHAR"/>
+        <result column="IS_SECRET" property="isSecret" jdbcType="VARCHAR"/>
+        <result column="SECRET_LEVEL" property="secretLevel" jdbcType="VARCHAR"/>
+        <result column="TECHNOLOGY_DIRECTORY" property="technologyDirectory" jdbcType="VARCHAR"/>
+        <result column="PROVINCE" property="province" jdbcType="VARCHAR"/>
+        <result column="ORGANSATTRIBUTE" property="organsAttribute" jdbcType="VARCHAR"/>
+
+        <association property="addUser" column="ADD_USER_ID" javaType="com.cms.entities.admin.UserInfo">
+            <id column="ACCT_ID" property="id" jdbcType="NUMERIC"/>
+            <result column="USER_NAME" property="userName" jdbcType="VARCHAR"/>
+        </association>
+    </resultMap>
+
+    <select id="productQueryPage" parameterType="java.util.Map" resultMap="productMap">
+        select u.*, a.ACCT_ID, a.USER_NAME
+        from T_PRODUCT u LEFT join B_ACCOUNT a on u.ADD_USER_ID=a.ACCT_ID
+        WHERE  1=1
+        <if test="name!=null and name !=''">
+          AND u.PRD_NAME LIKE '%'||#{name}||'%'
+        </if>
+        <if test="status!=null and status !=''">
+            AND u.STATUS=#{status}
+        </if>
+        <if test="addUserId!=null and addUserId !=''">
+            AND u.ADD_USER_ID=#{addUserId}
+        </if>
+        <if test="type!=null and type !=''">
+            AND u.TYPE=#{type}
+        </if>
+    </select>
+
+    <select id="frontQuery" parameterType="String" resultMap="productMap">
+        select tmp_tb.* from
+        (select u.*, a.ACCT_ID, a.USER_NAME
+        from T_PRODUCT u LEFT join B_ACCOUNT a on u.ADD_USER_ID=a.ACCT_ID WHERE 1=1
+        <if test="value!=null and value !=''">
+            AND u.STATUS in (#{value})
+        </if>
+        ) tmp_tb where ROWNUM &lt;= 10
+    </select>
+
+    <insert id="insertProduct" parameterType="com.cms.entities.admin.ProductInfo" >
+        <selectKey keyProperty="id" resultType="int" order="BEFORE">
+            select SEQ_AMS.nextval  from dual
+        </selectKey>
+        insert into T_PRODUCT (PRD_ID, PRD_NAME, PRD_ORGANIZATION, START_DATE, END_DATE,
+        ADDR, LINKMAN, AREA, CONTENT, TELEPHONE,
+        PRICE_UNIT, ZIP_CODE, TYPE, STATUS,
+        PRD_CN_NAME, TASK_SOURCE, IS_SECRET, SECRET_LEVEL, TECHNOLOGY_DIRECTORY,
+        PROVINCE, ORGANSATTRIBUTE,
+        ADD_DATE, EDIT_DATE, PAST_DATE, ADD_USER_ID, EDIT_USER_ID)
+        values(#{id}, #{name,jdbcType=VARCHAR}, #{organization,jdbcType=VARCHAR},#{startDate,jdbcType=TIMESTAMP},#{endDate,jdbcType=TIMESTAMP},
+        #{addr,jdbcType=VARCHAR},#{linkman,jdbcType=VARCHAR},#{area,jdbcType=VARCHAR},#{content,jdbcType=VARCHAR}, #{telephone,jdbcType=VARCHAR},
+        #{priceUnit,jdbcType=VARCHAR}, #{zipCode,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR},
+        #{chineseName,jdbcType=VARCHAR}, #{taskSource,jdbcType=VARCHAR}, #{isSecret,jdbcType=VARCHAR}, #{secretLevel,jdbcType=VARCHAR}, #{technologyDirectory,jdbcType=VARCHAR},
+        #{province,jdbcType=VARCHAR},#{organsAttribute,jdbcType=VARCHAR},
+        #{addDate}, #{editDate}, #{pastDate}, #{addUser.id,jdbcType=NUMERIC}, #{editUser.id,jdbcType=NUMERIC})
+    </insert>
+
+    <update id="updateProduct" parameterType="com.cms.entities.admin.ProductInfo" >
+        UPDATE  T_PRODUCT SET
+        PRD_NAME=#{name,jdbcType=VARCHAR}, PRD_ORGANIZATION= #{organization,jdbcType=VARCHAR}, START_DATE=#{startDate,jdbcType=TIMESTAMP},
+        END_DATE=#{endDate,jdbcType=TIMESTAMP}, ADDR=#{addr,jdbcType=VARCHAR}, LINKMAN=#{linkman,jdbcType=VARCHAR}, AREA=#{area,jdbcType=VARCHAR},
+        CONTENT=#{content,jdbcType=VARCHAR}, TELEPHONE=#{telephone,jdbcType=VARCHAR}, PRICE_UNIT=#{priceUnit,jdbcType=VARCHAR},
+        PRD_CN_NAME=#{chineseName,jdbcType=VARCHAR}, TASK_SOURCE=#{taskSource,jdbcType=VARCHAR}, IS_SECRET=#{isSecret,jdbcType=VARCHAR},
+        SECRET_LEVEL=#{secretLevel,jdbcType=VARCHAR}, TECHNOLOGY_DIRECTORY=#{technologyDirectory,jdbcType=VARCHAR},
+        PROVINCE=#{province,jdbcType=VARCHAR},ORGANSATTRIBUTE=#{organsAttribute,jdbcType=VARCHAR},
+        ZIP_CODE=#{zipCode,jdbcType=VARCHAR}, EDIT_DATE=#{editDate}, EDIT_USER_ID=#{editUser.id}
+        WHERE PRD_ID=#{id}
+    </update>
+
+    <update id="updateStatus" parameterType="java.util.Map">
+        UPDATE  T_PRODUCT SET STATUS=#{status} WHERE PRD_ID=#{id}
+    </update>
+
+    <select id="getProductById" parameterType="com.cms.entities.admin.ProductInfo" resultMap="productMap">
+        SELECT t.*, a.ACCT_ID, a.USER_NAME
+        FROM T_PRODUCT t
+        LEFT JOIN B_ACCOUNT a ON t.ADD_USER_ID=a.ACCT_ID
+        WHERE t.PRD_ID=#{id}
+    </select>
+
+    <update id="deleteProduct">
+        UPDATE T_PRODUCT set STATUS='-1' WHERE PRD_ID  in
+        <foreach collection="array" item="id" open="(" separator="," close=")">#{id}</foreach>
+    </update>
+</mapper>

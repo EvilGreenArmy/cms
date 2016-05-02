@@ -1,0 +1,28 @@
+package com.cms.dao.admin;
+
+import com.cms.entities.admin.CategoryInfo;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by Reason on 2016/3/27.
+ */
+@Repository
+public interface CategoryMapper {
+
+    List<CategoryInfo> categoryQueryPage(Map map);
+
+    void insertCategory(CategoryInfo category);
+
+    CategoryInfo getCategoryById(Integer id);
+
+    CategoryInfo getCategory(CategoryInfo category);
+
+    List<CategoryInfo> querySubCategorys(Integer parentId);
+
+    void updateCategory(CategoryInfo category);
+
+    void deletes(Integer[] ids);
+}

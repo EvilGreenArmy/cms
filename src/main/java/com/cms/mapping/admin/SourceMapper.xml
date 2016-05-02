@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cms.dao.admin.SourceMapper" >
+    <resultMap type="com.cms.entities.admin.SourceInfo" id="sourceMap">
+        <!-- 主键必须用id标签映射 -->
+        <id column="SOURCE_ID" property="id" />
+        <!-- column为数据库字段名,property为实体类属性名 -->
+        <result column="SOURCE_NAME" property="name" />
+        <result column="SOURCE_CODE" property="code" />
+        <result column="STATUS" property="status" />
+        <result column="SOURCE_LEVEL" property="level" />
+        <result column="SOURCE_STYLE" property="style" />
+        <result column="POSITION" property="position" />
+        <result column="IS_MENU" property="isMenu" />
+        <result column="DESCRIPTION" property="description" />
+        <result column="ICON" property="icon" />
+        <association property="parentInfo" column="PARENT_ID" javaType="com.cms.entities.admin.SourceInfo"  select="queryParent">
+        </association>
+    </resultMap>
+    <resultMap type="com.cms.entities.admin.SourceInfo" id="parentMap">
+        <!-- 主键必须用id标签映射 -->
+        <id column="SOURCE_ID" property="id" />
+        <!-- column为数据库字段名,property为实体类属性名 -->
+        <result column="SOURCE_NAME" property="name" />
+        <result column="SOURCE_CODE" property="code" />
+        <result column="STATUS" property="status" />
+        <result column="SOURCE_LEVEL" property="level" />
+        <result column="SOURCE_STYLE" property="style" />
+        <result column="POSITION" property="position" />
+        <result column="IS_MENU" property="isMenu" />
+        <result column="DESCRIPTION" property="description" />
+        <result column="ICON" property="icon" />
+    </resultMap>
+    <select id="queryParent" resultMap="parentMap">
+        SELECT
+          u.SOURCE_ID,
+          u.SOURCE_NAME,
+          u.SOURCE_CODE,
+          u.STATUS,
+          u.SOURCE_LEVEL,
+          u.SOURCE_STYLE,
+          u.POSITION,
+          u.IS_MENU,
+          u.DESCRIPTION,
+          u.ICON
+        FROM B_SOURCE u WHERE u.SOURCE_ID=#{id}
+        ORDER BY u.SOURCE_STYLE
+    </select>
+    <select id="sourceQueryPage" parameterType="java.util.Map" resultMap="sourceMap">
+        select *
+        from B_SOURCE u
+        WHERE 1=1 and u.STATUS='A'
+            <if test="name!=null and name !=''">
+               AND u.SOURCE_NAME LIKE '%'||#{name}||'%'
+            </if>
+        <if test="code!=null and code !=''">
+            AND u.SOURCE_CODE LIKE '%'||#{code}||'%'
+        </if>
+    </select>
+    <select id="getParentSource" parameterType="com.cms.entities.admin.UserInfo" resultMap="sourceMap">
+      SELECT * from B_SOURCE u WHERE u.SOURCE_ID IN (
+          select u.parent_id from b_source u, b_account_duty ad,b_duty_source ds where ad.duty_id=ds.duty_id
+            and u.source_id=ds.source_id
+              and ad.acct_id=#{id}
+          ) AND u.STATUS='A'
+    </select>
+    <select id="getChildrenSource" parameterType="com.cms.entities.admin.UserInfo" resultMap="sourceMap">
+        SELECT * FROM B_SOURCE u WHERE u.SOURCE_ID IN (
+        SELECT ds.source_id FROM b_account_duty ad,b_duty_source ds WHERE ad.duty_id=ds.duty_id
+          AND ad.acct_id=#{id}
+        ) AND u.STATUS='A'
+    </select>
+    <select id="getAllParentSource"  resultMap="sourceMap">
+        SELECT * from B_SOURCE u WHERE u.STATUS='A' AND  u.PARENT_ID IS NULL
+    </select>
+    <select id="getAllChildrenSource"  resultMap="sourceMap">
+        SELECT * FROM B_SOURCE u WHERE  u.STATUS='A' AND  u.PARENT_ID IS NOT  NULL
+    </select>
+    <insert id="insertSource" parameterType="com.cms.entities.admin.SourceInfo" >
+        <selectKey keyProperty="id" resultType="int" order="BEFORE">
+            select SEQ_AMS.nextval  from dual
+        </selectKey>
+        insert into B_SOURCE (SOURCE_ID, SOURCE_NAME, SOURCE_CODE, STATUS, SOURCE_LEVEL, SOURCE_STYLE, POSITION,
+          IS_MENU, DESCRIPTION, ICON, PARENT_ID)
+        values(#{id}, #{name}, #{code}, #{status},#{level},#{style},#{position}, #{isMenu}, #{description}, #{icon}, #{parentInfo.id})
+    </insert>
+    <select id="getSourceById" parameterType="java.lang.Integer" resultMap="sourceMap">
+        SELECT * FROM B_SOURCE t WHERE t.SOURCE_ID=#{id}
+    </select>
+    <update id="updateSource" parameterType="com.cms.entities.admin.SourceInfo">
+        UPDATE B_SOURCE
+        SET SOURCE_NAME=#{name, jdbcType=VARCHAR},
+        DESCRIPTION=#{description, jdbcType=VARCHAR}
+        WHERE SOURCE_ID=#{id}
+    </update>
+    <update id="deleteSource">
+        UPDATE B_SOURCE set STATUS='D' WHERE SOURCE_ID  in
+        <foreach collection="array" item="id" open="(" separator="," close=")">#{id}</foreach>
+    </update>
+    <select id="getRoleSource" parameterType="java.lang.Integer" resultMap="sourceMap">
+      SELECT * FROM B_SOURCE b WHERE b.SOURCE_ID IN(
+        SELECT s.SOURCE_ID FROM b_duty_source s WHERE S.DUTY_ID=#{roleId}
+      )
+    </select>
+</mapper>
