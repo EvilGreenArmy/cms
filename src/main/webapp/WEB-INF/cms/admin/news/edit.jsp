@@ -1,3 +1,4 @@
+<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
          pageEncoding="UTF-8"%>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
@@ -5,9 +6,9 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <script type="text/javascript">
-  var editor;
+  var editor1;
   KindEditor.ready(function(K) {
-    editor = K.create('textarea[name="content"]', {
+    editor1 = K.create('textarea[name="content"]', {
       allowFileManager: false
     });
   });
@@ -23,7 +24,7 @@
       layer.msg('标题不能为空！');
       return;
     }
-    var content = editor.html();
+    var content = editor1.html();
     $("#content").val(content);
     if($.trim(content) == '') {
       layer.msg('内容不能为空！')
@@ -41,7 +42,7 @@
     });
   }
 </script>
-<form action="${basePath}/news/add.do" method="post" id="news" name="news">
+<form action="${basePath}/news/edit.do" method="post" id="news" name="news">
   <input type="hidden" name="id" value="${news.id}" />
   <div class="place">
     <span>位置：</span>
@@ -71,7 +72,7 @@
         </select>
       </li>
       <li><label>内容</label>
-        <textarea name="content" style="width:800px;height:300px;visibility:hidden;display: block;">${news.content}</textarea>
+        <textarea name="content" id="content" style="width:800px;height:300px;visibility:hidden;display: block;">${news.content}</textarea>
       </li>
       <li><label>&nbsp;</label><input onclick="saveNews();" type="button" class="btn" value="确认保存"/></li>
     </ul>

@@ -62,19 +62,7 @@
     postDataByFormName('newsList','workspace');
   }
   function preview(val) {
-    KindEditor.ready(function(K) {
-      var dialog = K.dialog({
-        width : 500,
-        title : '预览',
-        body : val,
-        closeBtn : {
-          name : '关闭',
-          click : function(e) {
-            dialog.remove();
-          }
-        }
-      });
-    });
+    postDataByURL('${basePath}/news/detail.do',{id:val},'workspace');
   }
 </script>
 <form action="${basePath}/news/list.do" method="post" id="newsList" name="newsList">
@@ -148,7 +136,7 @@
         <tr>
           <td><input name="id" type="checkbox" value="${obj.id}" /></td>
           <td>${obj.title}</td>
-          <td><a href="javascript:;" class="tablelink" onclick='preview("${obj.content}");'>预览</a></td>
+          <td><a href="javascript:;" class="tablelink" onclick='preview("${obj.id}");'>预览</a></td>
           <td>${obj.creator.userName}</td>
           <td><fmt:formatDate value="${obj.createTime}" pattern="yyyy-MM-dd hh:mm:ss"/></td>
           <td>

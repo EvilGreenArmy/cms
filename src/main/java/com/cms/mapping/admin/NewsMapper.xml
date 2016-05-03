@@ -9,7 +9,7 @@
         <result column="TITLE" property="title"  jdbcType="VARCHAR"/>
         <result column="TYPE" property="type"  jdbcType="VARCHAR"/>
         <result property="content" column="NEWS_CONTENT" jdbcType="CLOB"
-                javaType = "java.lang.String"  typeHandler ="com.cms.service.admin.OracleClobTypeHandler"/>
+                javaType = "java.lang.String"  typeHandler ="org.apache.ibatis.type.ClobTypeHandler"/>
         <association property="creator" column="CREATOR" javaType="com.cms.entities.admin.UserInfo">
             <id column="CREATOR" property="id" jdbcType="NUMERIC"/>
             <result column="USER_NAME" property="userName" jdbcType="VARCHAR"/>
@@ -45,7 +45,7 @@
     <update id="updateNews" parameterType="com.cms.entities.admin.NewsInfo">
         UPDATE T_NEWS
         SET TITLE=#{title, jdbcType=VARCHAR},
-        TYP=#{type, jdbcType=VARCHAR},
+        TYPE=#{type, jdbcType=VARCHAR},
         NEWS_CONTENT=#{content, jdbcType=CLOB}
         WHERE ID=#{id}
     </update>

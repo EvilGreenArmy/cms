@@ -4,6 +4,8 @@ import oracle.sql.CLOB;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.TypeHandler;
 
+import java.io.Writer;
+import java.lang.reflect.Method;
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -35,9 +37,18 @@ public class OracleClobTypeHandler implements TypeHandler<Object> {
 
     @Override
     public void setParameter(PreparedStatement arg0, int arg1, Object arg2, JdbcType arg3) throws SQLException {
-        CLOB clob = CLOB.empty_lob();
-        clob.setString(1, (String) arg2);
-        arg0.setClob(arg1, clob);
+        try {
+            CLOB clob = CLOB.empty_lob();
+            //clob.setString(1, (String) arg2);
+            Method methodToInvoke = clob.getClass().getMethod("getCharacterOutputStream", (Class[]) null);
+            Writer writer = (Writer) methodToInvoke.invoke(clob, (Object[]) null);
+            writer.write((String) arg2);
+            writer.close();
+            arg0.setClob(arg1, clob);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
     private String htmlSpecialChars(String str) {
         str = str.replaceAll("&", "&amp;");

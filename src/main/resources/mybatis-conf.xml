@@ -6,10 +6,10 @@
     <!--<settings>
         <setting name="jdbcTypeForNull" value="NULL" />
     </settings>-->
-    <typeHandlers>
+    <!--<typeHandlers>
         <typeHandler handler="com.cms.service.admin.OracleClobTypeHandler"
                      javaType="java.lang.String" jdbcType="CLOB"/>
-    </typeHandlers>
+    </typeHandlers>-->
     <plugins>
         <plugin interceptor="com.cms.pagination.PageHelper">
             <property name="dialect" value="oracle" />

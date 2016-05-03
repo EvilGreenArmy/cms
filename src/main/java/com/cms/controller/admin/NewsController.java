@@ -5,6 +5,8 @@ import com.cms.entities.admin.UserInfo;
 import com.cms.pagination.Page;
 import com.cms.service.admin.NewsService;
 import com.cms.util.Constant;
+import com.cms.util.StringUtil;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -57,6 +59,15 @@ public class NewsController extends BaseController {
                       @ModelAttribute NewsInfo news) {
         UserInfo userInfo = (UserInfo) getSession(request).getAttribute(Constant.SESSION_LOGIN_USER);
         news.setCreator(userInfo);
+        String content = news.getContent();
+        content = StringEscapeUtils.unescapeJava(content);
+        content = content.replaceAll("\\\\r", "");
+        content = content.replaceAll("\\\\n", "");
+        content = content.replaceAll("\\\\f", "");
+        content = content.replaceAll("\\\\t", "");
+        content = content.replaceAll("\\\\b", "");
+        content = content.replaceAll("\\\\", "");
+        news.setContent(content);
         news.setCreateTime(new Date());
         this.newsService.saveNews(news);
         return "redirect:/news/list.do";
@@ -73,8 +84,27 @@ public class NewsController extends BaseController {
     @RequestMapping(value = "edit", method = RequestMethod.POST)
     public String edit(HttpServletRequest request, HttpServletResponse response, ModelMap model,
                        @ModelAttribute NewsInfo news) {
+        String content = news.getContent();
+        content = StringEscapeUtils.unescapeJava(content);
+        content = content.replaceAll("\\\\r", "");
+        content = content.replaceAll("\\\\n", "");
+        content = content.replaceAll("\\\\f", "");
+        content = content.replaceAll("\\\\t", "");
+        content = content.replaceAll("\\\\b", "");
+        content = content.replaceAll("\\\\", "");
+        news.setContent(content);
         this.newsService.updateNews(news);
         return "redirect:/news/list.do";
+    }
+    public static void main(String[] args) {
+//       /* System.out.println("转义HTML,注意汉字:"+StringEscapeUtils.unescapeHtml(StringEscapeUtils.unescapeHtml("<ol>\\r\\n\\t<li>\\r\\n\\t\\t呃呃呃\\r\\n\\t</li>\\r\\n\\t<li>\\r\\n\\t\\t呃呃呃\\r\\n\\t</li>\\r\\n\\t<li>\\r\\n\\t\\t嗖嗖嗖\\r\\n\\t</li>\\r\\n\\t<li>\\r\\n\\t\\t咚咚咚\\r\\n\\t</li>\\r\\n</ol>")));    //转义HTML,注意汉字
+//        System.out.println("反转义HTML:"+StringEscapeUtils.unescapeJava("<ol>\\r\\n\\t<li>\\r\\n\\t\\t呃呃呃\\r\\n\\t</li>\\r\\n\\t<li>\\r\\n\\t\\t点点滴滴\\r\\n\\t</li>\\r\\n\\t<li>\\r\\n\\t\\t草草草草\\r\\n\\t</li>\\r\\n\\t<li>\\r\\n\\t\\tdddd\\r\\n\\t</li>\\r\\n</ol>"));  //反转义HTML*/
+        String str = "<ol>\\\\r\\\\n\\\\t<li>\\\\r\\\\n\\\\t\\\\t111\\\\r\\\\n\\\\t</li>\\\\r\\\\n\\\\t<li>\\\\r\\\\n\\\\t\\\\t2222\\\\r\\\\n\\\\t</li>\\\\r\\\\n\\\\t<li>\\\\r\\\\n\\\\t\\\\t3333\\\\r\\\\n\\\\t</li>\\\\r\\\\n\\\\t<li>\\\\r\\\\n\\\\t\\\\t4444\\\\r\\\\n\\\\t</li>\\\\r\\\\n</ol>";
+        str = str.replaceAll("\\\\r", "");
+        str = str.replaceAll("\\\\n", "");
+        str = str.replaceAll("\\\\t", "");
+        str = str.replaceAll("\\\\", "");
+        System.out.println(str);
     }
 
     @RequestMapping(value = "delete", method = RequestMethod.POST)
@@ -82,5 +112,12 @@ public class NewsController extends BaseController {
                          @RequestParam("id") Integer[] ids) {
         this.newsService.deleteNews(ids);
         return "redirect:/news/list.do";
+    }
+    @RequestMapping(value = "detail", method = RequestMethod.POST)
+    public String detail(HttpServletRequest request, HttpServletResponse response, ModelMap model,
+                         @RequestParam("id") Integer id) {
+        NewsInfo news = this.newsService.getNewsById(id);
+        model.addAttribute("news", news);
+        return "news/detail";
     }
 }
