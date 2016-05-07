@@ -136,7 +136,7 @@
         <tr>
           <td><input name="id" type="checkbox" value="${obj.id}" /></td>
           <td>${obj.title}</td>
-          <td><a href="javascript:;" class="tablelink" onclick='preview("${obj.id}");'>预览</a></td>
+          <td><a href="javascript:;" class="tablelink" onclick='preview("${obj.id}");'>详情</a></td>
           <td>${obj.creator.userName}</td>
           <td><fmt:formatDate value="${obj.createTime}" pattern="yyyy-MM-dd hh:mm:ss"/></td>
           <td>
